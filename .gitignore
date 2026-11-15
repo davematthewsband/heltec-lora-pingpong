@@ -1,0 +1,40 @@
+# Operating system and editors
+.DS_Store
+._*
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Arduino / PlatformIO / CMake build artifacts
+.pio/
+/build/
+/cmake-build-*/
+*.elf
+*.bin
+*.hex
+*.map
+*.o
+*.a
+
+# Local configuration, credentials and diagnostics
+.env
+.env.*
+!.env.example
+*.local.h
+*.local.json
+*.local.yaml
+*.local.yml
+*.pem
+*.key
+.local/
+.local-network/
+/captures/
+/logs/
+*.log
+
+# Python tooling
+__pycache__/
+*.py[cod]
+.venv/
