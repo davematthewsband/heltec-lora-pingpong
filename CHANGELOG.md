@@ -4,6 +4,13 @@ Notable local changes are recorded here. Plans belong in [the roadmap](docs/road
 
 ## Unreleased
 
+### Shared button/light demo
+
+- Replaced the active PingPong experiment with one V3 firmware for two automatically identified devices; preserved the locally repaired PingPong baseline separately.
+- Added acknowledged remote LED toggles, bounded retries and duplicate suppression, OLED local/peer status and original-V3 battery voltage/approximate percentage.
+- Added long-press peer sleep followed by local sleep, release gating and PRG wake without interpreting the wake press as a command. Unconfirmed sleep requests fall back to local sleep.
+- Added host protocol/button/sleep checks and user/protocol documentation. Sanitizer checks and V3 build pass; no flashing or hardware testing performed.
+
 ### Firmware preparation
 
 - Pinned the V3 build to Espressif32 6.6.0 and Heltec ESP32 Dev-Boards 2.1.7, replacing the mismatched saved dependencies and supplying explicit board/radio definitions.

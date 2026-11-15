@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-source = (Path(__file__).resolve().parents[1] / 'src/main.cpp').read_text()
+source = (Path(__file__).resolve().parents[1] / 'archive/pingpong-oled-baseline.cpp').read_text()
 start = source.index('void OnRxDone( uint8_t *payload', source.index('void OnTxTimeout( void ){'))
 callback = source[start:source.index('\nvoid lora_init', start)]
 harness = r'''

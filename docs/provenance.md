@@ -22,3 +22,9 @@ Archived OTA OLED example Wi-Fi values were replaced with placeholders before pu
 ## Subsequent local firmware preparation
 
 The import hashes above describe the recovered baseline, not the current edited files. On 15 November 2026 the dependency configuration, MCU initialization and packet bounds were repaired locally; the baseline remains in Git history. The archived library was not modified. These repairs do not resolve the application's original upstream provenance/license uncertainty.
+
+## Shared demo development
+
+On 15 November 2026 the user identified the unchanged local Arduino sketches `Finn_lora_Bat/Finn_lora_Bat.ino` and `Anny_Lora_Bat/Anny_Lora_Bat.ino` as their older device firmware. These supplied behavioural context (labels, battery display, radio exchange and sleep), not proof of the current hardware image.
+
+Before implementing the agreed shared button/light demo, the current locally repaired PingPong source was preserved as `archive/pingpong-oled-baseline.cpp`; its historical receive test now reads that file. The active firmware and separate protocol/button logic implement the new demo. Original Arduino projects and archived Heltec library files were not edited. Original application provenance/license uncertainty remains unresolved.

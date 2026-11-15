@@ -1,60 +1,44 @@
-# Heltec LoRa PingPong
+# Heltec LoRa button and light demo
 
-Recovered ESP32 LoRa experiment for two devices exchanging messages and displaying reception details on their OLED screens.
+One firmware for two Heltec WiFi LoRa 32 **V3** devices: press either device's PRG button to toggle the other device's white onboard LED. Each device identifies itself automatically and shows battery and peer status on its OLED.
 
-## Firmware behavior
+## Using the demo
 
-The same recovered sketch contains both transmit and receive logic:
+- Wake/power both devices. Each listens immediately and sends a discovery/status packet after a random 0.5–2.5-second delay, then every 15–20 seconds. The first compatible peer heard is selected until restart/wake. Both devices use exactly the same image; there are no sender/receiver builds.
+- **Short PRG press:** toggle the peer's LED. The sender shows confirmation only after a matching acknowledgement; retries reuse the command ID so they cannot toggle the light twice.
+- **Hold PRG for two seconds:** ask the peer to sleep, then sleep locally. Release the button to allow local sleep. The peer acknowledges and stays awake for a ten-second retry window before sleeping. The sender sleeps about one second after acknowledgement. If there is no acknowledgement after three attempts, it shows an unconfirmed result and sleeps anyway; the peer may still be awake. With no discovered peer, it shows the failure and sleeps locally.
+- **Press PRG while asleep:** wake that device and resume listening. Release it before making a new command; the wake press is consumed. Wake the second device with its own button too—LoRa cannot wake this sleeping firmware.
+- Devices stay awake until a sleep command; there is no automatic timer wake. Sleeping turns the screen and white LED off. This is deep sleep, not electrical power-off; a charge/power indicator can remain lit.
 
-1. Starts in transmit mode and sends `hello <counter>,Rssi:<last received RSSI>`.
-2. Switches to receive mode after transmission completes.
-3. On reception, records the payload and RSSI, then schedules another transmission after a one-second delay.
-4. Displays received data, packet size, RSSI and the send counter on the OLED.
+The OLED shows a short device ID, own battery voltage/estimated percentage, peer battery, RSSI and age of last received packet, both LED states, and command result. Peer values are last reported values, not live readings. RSSI is signal strength, not distance. A peer cannot be declared absent immediately: use packet age and command acknowledgement. Local LED state resets to off on wake/restart.
 
-The sketch also contains button-triggered resend/deep-sleep behavior. Both peers starting together can contend; this is an experiment, with no recorded reliability guarantee.
+Battery sensing uses the **original V3** active-low GPIO37 switch, GPIO1 ADC and 390k/100k divider. Readings are averaged using the ADC millivolt API. Percentage is a rough linear estimate between 3.2 V and 4.2 V, clamped to 0–100%; readings outside 2.5–4.5 V show `--`. This does not reliably detect an absent battery or measure charge state while charging. Later V3 revisions need separate verification; do not infer compatibility from the generic V3 build target.
 
-## Recovered configuration
+## Build and checks
 
-| Setting | Value in the saved project |
-| --- | --- |
-| PlatformIO environment / board | `heltec_wifi_lora_32_V3` |
-| Framework | Arduino |
-| Frequency | 868 MHz |
-| Transmit power | 10 dBm |
-| Bandwidth | 125 kHz |
-| Spreading factor | 7 |
-| Coding rate | 4/5 |
-| Preamble | 8 symbols |
-| Serial baud rate | 115200 |
-
-These describe the source configuration. Physical board identities, past successful operation and current build compatibility remain unverified. Confirm each board's radio variant, antenna and suitable transmission settings before a hardware test.
-
-## Build status
-
-The recovered sketch now compiles for the user-confirmed V3 target with PlatformIO Espressif32 **6.6.0** (Arduino **2.0.14**) and Heltec ESP32 Dev-Boards **2.1.7**. The unused dependency list and incompatible Sandeep Mistry LoRa dependency have been replaced by the Heltec library used by this sketch.
-
-The configuration explicitly selects Heltec board 30, SX1262, the internal slow clock and EU868 definitions. Radio/OLED pins use the V3 definitions: NSS 8, clock 9, MOSI 10, MISO 11, reset 12, busy 13, DIO1 14; OLED SDA 17, SCL 18, reset 21 and Vext 36. A GPIO count alias accommodates the Heltec radio C source's IDF header inclusion.
+Pinned stack: PlatformIO Espressif32 **6.6.0**, Arduino **2.0.14**, Heltec ESP32 Dev-Boards **2.1.7**, board `heltec_wifi_lora_32_V3`. Board/radio definitions select ESP32-S3 and SX1262; the library is unchanged.
 
 ```sh
 pio run -e heltec_wifi_lora_32_V3
+python3 tests/test_demo.py
 python3 tests/test_receive.py
 ```
 
-The host test requires Python 3 and a C++ compiler with address/undefined sanitizers. It exercises the actual receive callback at packet-size boundaries. Packets of 30 bytes or more are rejected; up to 29 bytes plus the string terminator fit. Transmit formatting is also bounded.
+Host checks need Python 3 and a C++ compiler with address/undefined sanitizers. Demo tests exercise wire validation, button debounce/wake suppression, discovery, acknowledgements, command retries/duplicates, simultaneous commands, sleep and timer rollover. The older receive-boundary tests now target the preserved PingPong baseline.
 
-**Build verified; hardware operation unverified.** Before uploading, confirm the radio frequency variant, suitable antenna, local frequency/power/duty-cycle requirements and agreed hardware-test scope. The saved 868 MHz / 10 dBm / one-second reply delay is retained, not approved for transmission. The sketch starts transmitting after boot. Both peers need matching radio settings. No flashing or radio testing has been performed in this preparation stage.
+**No flashing or hardware validation is included in this change.** Confirm both radio variants, suitable antennas and applicable frequency/power/duty-cycle requirements before an agreed upload/test. The firmware will transmit discovery packets after boot. It retains 868 MHz, 10 dBm, 125 kHz bandwidth, SF7, coding rate 4/5, eight-symbol preamble, CRC on and normal IQ. Both peers must match. The retry/status timing is not a regulatory duty-cycle limiter; rapid button use also generates radio traffic.
 
-Official references: [PlatformIO V3 target](https://docs.platformio.org/en/latest/boards/espressif32/heltec_wifi_lora_32_V3.html), [Heltec V3 hardware](https://heltec.org/project/wifi-lora-32-v3/), [Heltec library](https://github.com/HelTecAutomation/Heltec_ESP32).
+Hardware checks still needed: actual reception and acknowledgement in both directions, simultaneous startup/presses, LED and OLED output, battery voltage against a meter, lost-peer reporting, long-press sleep on both devices, PRG wake independently, and battery-powered sleep current. A compile or transmit log establishes none of these.
 
-## Repository layout
+## Project layout and history
 
-- [Recovered firmware](src/main.cpp) and [saved PlatformIO configuration](platformio.ini).
-- [Working agreement](AGENTS.md), [changelog](CHANGELOG.md), [roadmap](docs/roadmap.md) and [learnings](docs/learnings.md).
-- [Source provenance](docs/provenance.md).
-- [Archived Heltec library](archive/heltec-library-1.1.0/README.upstream.md): the older library collection originally in this folder. It is retained for reference outside the active firmware source tree.
+- [Shared firmware](src/main.cpp), [protocol/button logic](include/demo_protocol.h), [PlatformIO configuration](platformio.ini) and [protocol notes](docs/demo-protocol.md).
+- [Preserved PingPong baseline](archive/pingpong-oled-baseline.cpp), including the earlier local build/bounds repairs.
+- [Working agreement](AGENTS.md), [changelog](CHANGELOG.md), [roadmap](docs/roadmap.md), [learnings](docs/learnings.md), and [source provenance](docs/provenance.md).
+- [Archived Heltec library](archive/heltec-library-1.1.0/README.upstream.md), retained outside the active firmware tree with its metadata, examples and notices.
 
-Build output, editor state, credentials and diagnostic captures are excluded from Git. The original PlatformIO project folder is unchanged.
+The old Finn/Anny Arduino sketches remain unchanged in the user's Arduino folder. Build output, editor state, device captures and private configuration are excluded from Git.
 
 ## Attribution and license
 
-The archived Heltec library carries the [MIT license](archive/heltec-library-1.1.0/LICENSE), also retained at the repository root. The recovered application uses Heltec APIs and appears related to their examples, but its exact upstream source and applicable application license have not been established. The archived library's license is not evidence of a separate license grant for the recovered application. See [provenance](docs/provenance.md).
+The archived Heltec library carries the [MIT license](archive/heltec-library-1.1.0/LICENSE), also retained at the root. The recovered application uses Heltec APIs and appears related to their examples, but its original upstream source and applicable license remain uncertain. The archived library's license does not establish a separate license grant for that application; see [provenance](docs/provenance.md).
