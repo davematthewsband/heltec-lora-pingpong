@@ -86,6 +86,11 @@ void OnTxTimeout( void ){
 }
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ){
+  if (size >= sizeof(rxpacket)) {
+    Serial.printf("Dropping oversized packet: %u bytes\r\n", size);
+    state = STATE_RX;
+    return;
+  }
   rxNumber++;
   Rssi=rssi;
   rxSize=size;
@@ -99,7 +104,7 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ){
 }
 
 void lora_init(void){
-  Mcu.begin();
+  Mcu.begin(HELTEC_BOARD, SLOW_CLK_TPYE);
   txNumber=0;
   Rssi=0;
   rxNumber = 0;
@@ -323,7 +328,7 @@ void loop(){
     case STATE_TX:
       delay(1000);
       txNumber++;
-      sprintf(txpacket,"hello %d,Rssi:%d",txNumber,Rssi);
+      snprintf(txpacket, sizeof(txpacket), "hello %d,Rssi:%d", txNumber, Rssi);
       Serial.printf("\r\nsending packet \"%s\" , length %d\r\n",txpacket, strlen(txpacket));
       Radio.Send( (uint8_t *)txpacket, strlen(txpacket) );
       state=LOWPOWER;

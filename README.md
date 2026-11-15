@@ -31,17 +31,20 @@ These describe the source configuration. Physical board identities, past success
 
 ## Build status
 
-`src/main.cpp` and `platformio.ini` were copied byte-for-byte from the local **PingPong OLED** PlatformIO project. No firmware changes or flashing were performed during recovery.
+The recovered sketch now compiles for the user-confirmed V3 target with PlatformIO Espressif32 **6.6.0** (Arduino **2.0.14**) and Heltec ESP32 Dev-Boards **2.1.7**. The unused dependency list and incompatible Sandeep Mistry LoRa dependency have been replaced by the Heltec library used by this sketch.
 
-The saved configuration lists `sandeepmistry/LoRa` under `lib_deps`, while the sketch includes `LoRaWan_APP.h` and `HT_SSD1306Wire.h` and uses Heltec's `Radio` API. Heltec dependencies appear separately under `lib_deps_all`. This dependency setup has not been validated; a clean build is still required. Platform/toolchain versions are not pinned.
-
-After resolving the dependencies for the verified hardware, the intended build entry point is:
+The configuration explicitly selects Heltec board 30, SX1262, the internal slow clock and EU868 definitions. Radio/OLED pins use the V3 definitions: NSS 8, clock 9, MOSI 10, MISO 11, reset 12, busy 13, DIO1 14; OLED SDA 17, SCL 18, reset 21 and Vext 36. A GPIO count alias accommodates the Heltec radio C source's IDF header inclusion.
 
 ```sh
 pio run -e heltec_wifi_lora_32_V3
+python3 tests/test_receive.py
 ```
 
-This is not yet a verified build recipe. Upload instructions will be added after the build and hardware are confirmed.
+The host test requires Python 3 and a C++ compiler with address/undefined sanitizers. It exercises the actual receive callback at packet-size boundaries. Packets of 30 bytes or more are rejected; up to 29 bytes plus the string terminator fit. Transmit formatting is also bounded.
+
+**Build verified; hardware operation unverified.** Before uploading, confirm the radio frequency variant, suitable antenna, local frequency/power/duty-cycle requirements and agreed hardware-test scope. The saved 868 MHz / 10 dBm / one-second reply delay is retained, not approved for transmission. The sketch starts transmitting after boot. Both peers need matching radio settings. No flashing or radio testing has been performed in this preparation stage.
+
+Official references: [PlatformIO V3 target](https://docs.platformio.org/en/latest/boards/espressif32/heltec_wifi_lora_32_V3.html), [Heltec V3 hardware](https://heltec.org/project/wifi-lora-32-v3/), [Heltec library](https://github.com/HelTecAutomation/Heltec_ESP32).
 
 ## Repository layout
 

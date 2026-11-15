@@ -10,9 +10,9 @@ Acceptance: record confirmed facts and retain unknowns explicitly.
 
 ## 2. Reproduce a clean build
 
-- Verify official board/library documentation and resolve the saved dependency configuration.
-- Pin a compatible platform and library stack; document exact build commands and results.
-- Review the existing receive buffer handling, which currently copies unbounded received sizes into a 30-byte array, before hardware testing.
+- Completed for the user-confirmed V3 target: dependency reconciliation, pinned stack and successful compilation. See learnings for versions and limitations.
+- Confirm the physical frequency variant and antenna before any hardware test.
+- Completed: bounded receive/transmit handling and host receive-boundary checks.
 
 Acceptance: a clean build for the confirmed hardware; any firmware repair is discussed before edits.
 

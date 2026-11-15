@@ -18,3 +18,7 @@ The pre-existing library is preserved under `archive/heltec-library-1.1.0/`, inc
 The root LICENSE duplicates the archived library's license. Its existence does not establish the provenance or license of the separately recovered application.
 
 Archived OTA OLED example Wi-Fi values were replaced with placeholders before publication. An original copy was kept outside the repository in a private local temporary directory.
+
+## Subsequent local firmware preparation
+
+The import hashes above describe the recovered baseline, not the current edited files. On 15 November 2026 the dependency configuration, MCU initialization and packet bounds were repaired locally; the baseline remains in Git history. The archived library was not modified. These repairs do not resolve the application's original upstream provenance/license uncertainty.
